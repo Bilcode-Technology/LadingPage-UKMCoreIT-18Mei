@@ -548,29 +548,78 @@ document.getElementById('contact-form').addEventListener('submit', function (e) 
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Mengirim...</span>';
 
-    setTimeout(() => {
-        const data = {
-            nama: document.getElementById('nama').value.trim(),
-            email: document.getElementById('email').value.trim(),
-            pesan: document.getElementById('pesan').value.trim(),
-            daftar_anggota: document.getElementById('daftar-anggota').checked,
-            status: 'unread'
-        };
-        db.create('contacts', data);
+    const data = {
+        nama: document.getElementById('nama').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        pesan: document.getElementById('pesan').value.trim(),
+        daftar_anggota: document.getElementById('daftar-anggota').checked
+    };
+
+    fetch('send_email.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(errData => {
+                throw new Error(errData.message || 'Gagal mengirim pesan.');
+            }).catch(() => {
+                throw new Error('Gagal mengirim pesan.');
+            });
+        }
+        return response.json();
+    })
+    .then(res => {
+        // Simpan ke local db sebagai backup/riwayat
+        db.create('contacts', { ...data, status: 'unread' });
+        
         this.reset();
         document.getElementById('pesan-counter').textContent = '0 / 500';
+        showToast('Pesan Terkirim! 🎉', res.message || 'Terima kasih, kami akan segera menghubungi kamu.', 'success');
+    })
+    .catch(err => {
+        console.error(err);
+        showToast('Gagal Mengirim ❌', err.message || 'Terjadi kesalahan saat menghubungi server. Silakan coba lagi.', 'error');
+    })
+    .finally(() => {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-paper-plane"></i><span>Kirim Pesan</span>';
-        showToast('Pesan Terkirim! 🎉', 'Terima kasih, kami akan segera menghubungi kamu.');
-    }, 1000);
+    });
 });
 
 /* ─── Toast ─── */
 let toastTimer;
 const showToast = (title, msg, type = 'success') => {
+    const toast = document.getElementById('toast');
+    const toastIconContainer = toast.querySelector('.rounded-full');
+    const toastIcon = toast.querySelector('i');
+    
     document.getElementById('toast-title').textContent = title;
     document.getElementById('toast-msg').textContent = msg;
-    const toast = document.getElementById('toast');
+    
+    if (type === 'error') {
+        // Ganti styling toast ke tema error (merah)
+        toast.classList.remove('border-green-200', 'dark:border-green-800');
+        toast.classList.add('border-red-200', 'dark:border-red-800');
+        
+        toastIconContainer.classList.remove('bg-green-100', 'dark:bg-green-900/40');
+        toastIconContainer.classList.add('bg-red-100', 'dark:bg-red-900/40');
+        
+        toastIcon.className = 'fas fa-xmark text-red-500 text-sm';
+    } else {
+        // Kembalikan ke tema sukses (hijau)
+        toast.classList.remove('border-red-200', 'dark:border-red-800');
+        toast.classList.add('border-green-200', 'dark:border-green-800');
+        
+        toastIconContainer.classList.remove('bg-red-100', 'dark:bg-red-900/40');
+        toastIconContainer.classList.add('bg-green-100', 'dark:bg-green-900/40');
+        
+        toastIcon.className = 'fas fa-check text-green-500 text-sm';
+    }
+    
     toast.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(hideToast, 4500);
