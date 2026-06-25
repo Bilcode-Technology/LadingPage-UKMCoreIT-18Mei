@@ -398,7 +398,7 @@ const openProgramModal = (key) => {
   `).join('');
 
     if (modalRegisterBtn) {
-        modalRegisterBtn.setAttribute('href', `assets/pendaftaran.php?bidang=${encodeURIComponent(data.title)}`);
+        modalRegisterBtn.setAttribute('href', `assets/pendaftar.html?bidang=${encodeURIComponent(data.title)}`);
     }
 
     // Open modal with transitions

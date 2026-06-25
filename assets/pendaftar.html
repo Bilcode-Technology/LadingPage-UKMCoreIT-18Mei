@@ -1,11 +1,3 @@
-<?php
-$bidang = "";
-
-if(isset($_GET['bidang'])){
-    $bidang = $_GET['bidang'];
-}
-?>
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -131,30 +123,14 @@ body{
 
         <div class="mb-3">
             <label class="form-label">Minat Bidang</label>
-
-            <select name="bidang" class="form-select" required>
+            <select name="bidang" id="bidang-select" class="form-select" required>
                 <option value="">Pilih Bidang</option>
-                <option value="Web Development" <?= ($bidang=="Web Development") ? "selected" : "" ?>>
-                    Web Development
-                </option>
-
-                <option value="Mobile App Development" <?= ($bidang=="Mobile App Development") ? "selected" : "" ?>>
-                    Mobile App Development
-                </option>
-
-                <option value="Data Science & AI" <?= ($bidang=="Data Science & AI") ? "selected" : "" ?>>
-                    Data Science & AI
-                </option>
-
-                <option value="Cybersecurity" <?= ($bidang=="Cybersecurity") ? "selected" : "" ?>>
-                    Cybersecurity
-                </option>
-
-                <option value="UI/UX Design" <?= ($bidang=="UI/UX Design") ? "selected" : "" ?>>
-                    UI/UX Design
-                </option>
+                <option value="Web Development">Web Development</option>
+                <option value="Mobile App Development">Mobile App Development</option>
+                <option value="Data Science & AI">Data Science & AI</option>
+                <option value="Cybersecurity">Cybersecurity</option>
+                <option value="UI/UX Design">UI/UX Design</option>
             </select>
-
         </div>
 
         <button type="submit" class="btn-daftar">
@@ -168,6 +144,18 @@ body{
     </form>
 
 </div>
+
+<script>
+    // Ambil parameter bidang dari URL query string
+    const urlParams = new URLSearchParams(window.location.search);
+    const bidangParam = urlParams.get('bidang');
+    if (bidangParam) {
+        const bidangSelect = document.getElementById('bidang-select');
+        if (bidangSelect) {
+            bidangSelect.value = bidangParam;
+        }
+    }
+</script>
 
 </body>
 </html>
