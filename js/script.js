@@ -397,6 +397,10 @@ const openProgramModal = (key) => {
     <span class="text-xs bg-gray-100 dark:bg-dark-bg text-gray-700 dark:text-gray-300 px-2.5 py-1 rounded-lg border border-gray-200 dark:border-dark-border font-medium">${tool}</span>
   `).join('');
 
+    if (modalRegisterBtn) {
+        modalRegisterBtn.setAttribute('href', `assets/pendaftaran.php?bidang=${encodeURIComponent(data.title)}`);
+    }
+
     // Open modal with transitions
     progModal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -423,39 +427,22 @@ document.querySelectorAll('.service-card[data-program]').forEach(card => {
     });
 });
 
-document.getElementById('modal-close').addEventListener('click', closeProgramModal);
-document.getElementById('program-modal-backdrop').addEventListener('click', closeProgramModal);
+const closeBtn = document.getElementById('modal-close');
+if (closeBtn) {
+    closeBtn.addEventListener('click', closeProgramModal);
+}
+const backdropBtn = document.getElementById('program-modal-backdrop');
+if (backdropBtn) {
+    backdropBtn.addEventListener('click', closeProgramModal);
+}
 
 // Registration Integration
-modalRegisterBtn.addEventListener('click', () => {
-    closeProgramModal();
+if (modalRegisterBtn) {
+    modalRegisterBtn.addEventListener('click', () => {
+        closeProgramModal();
+    });
+}
 
-    // Scroll to form
-    const contactSec = document.getElementById('contact');
-    if (contactSec) {
-        contactSec.scrollIntoView({ behavior: 'smooth' });
-
-        // Check registration option
-        const checkbox = document.getElementById('daftar-anggota');
-        if (checkbox) {
-            checkbox.checked = true;
-        }
-
-        // Populate message
-        const pesanInput = document.getElementById('pesan');
-        if (pesanInput) {
-            pesanInput.value = `Halo, saya tertarik bergabung dan ingin mendaftar untuk Program Pelatihan ${currentActiveProgram}.`;
-            // Trigger input event to clear validation error & update counter
-            pesanInput.dispatchEvent(new Event('input'));
-        }
-
-        // Focus on Name
-        const nameInput = document.getElementById('nama');
-        if (nameInput) {
-            setTimeout(() => nameInput.focus(), 800);
-        }
-    }
-});
 
 /* ─── FAQ ─── */
 const faqs = [
@@ -497,6 +484,7 @@ faqs.forEach((faq, i) => {
     });
     faqList.appendChild(item);
 });
+
 
 /* ─── Form Validation & Submit ─── */
 const validators = {
@@ -553,7 +541,7 @@ document.getElementById('contact-form').addEventListener('submit', function (e) 
         name: document.getElementById('nama').value.trim(),
         email: document.getElementById('email').value.trim(),
         message: document.getElementById('pesan').value.trim(),
-        subject: document.getElementById('daftar-anggota').checked 
+        subject: document.getElementById('daftar-anggota').checked
             ? "Pendaftaran Anggota Baru CORE IT - " + document.getElementById('nama').value.trim()
             : "Pesan Kontak Baru CORE IT - " + document.getElementById('nama').value.trim(),
         daftar_anggota: document.getElementById('daftar-anggota').checked ? "Ya" : "Tidak"
@@ -567,42 +555,42 @@ document.getElementById('contact-form').addEventListener('submit', function (e) 
         },
         body: JSON.stringify(data)
     })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(errData => {
-                throw new Error(errData.message || 'Gagal mengirim pesan.');
-            }).catch(() => {
-                throw new Error('Gagal mengirim pesan.');
-            });
-        }
-        return response.json();
-    })
-    .then(res => {
-        if (res.success) {
-            // Simpan ke local db sebagai backup/riwayat
-            db.create('contacts', {
-                nama: data.name,
-                email: data.email,
-                pesan: data.message,
-                daftar_anggota: document.getElementById('daftar-anggota').checked,
-                status: 'unread'
-            });
-            
-            this.reset();
-            document.getElementById('pesan-counter').textContent = '0 / 500';
-            showToast('Pesan Terkirim! 🎉', 'Terima kasih, kami akan segera menghubungi kamu.', 'success');
-        } else {
-            throw new Error(res.message || 'Gagal mengirim pesan.');
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        showToast('Gagal Mengirim ❌', err.message || 'Terjadi kesalahan saat mengirim pesan. Silakan coba lagi.', 'error');
-    })
-    .finally(() => {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-paper-plane"></i><span>Kirim Pesan</span>';
-    });
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(errData => {
+                    throw new Error(errData.message || 'Gagal mengirim pesan.');
+                }).catch(() => {
+                    throw new Error('Gagal mengirim pesan.');
+                });
+            }
+            return response.json();
+        })
+        .then(res => {
+            if (res.success) {
+                // Simpan ke local db sebagai backup/riwayat
+                db.create('contacts', {
+                    nama: data.name,
+                    email: data.email,
+                    pesan: data.message,
+                    daftar_anggota: document.getElementById('daftar-anggota').checked,
+                    status: 'unread'
+                });
+
+                this.reset();
+                document.getElementById('pesan-counter').textContent = '0 / 500';
+                showToast('Pesan Terkirim! 🎉', 'Terima kasih, kami akan segera menghubungi kamu.', 'success');
+            } else {
+                throw new Error(res.message || 'Gagal mengirim pesan.');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showToast('Gagal Mengirim ❌', err.message || 'Terjadi kesalahan saat mengirim pesan. Silakan coba lagi.', 'error');
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i><span>Kirim Pesan</span>';
+        });
 });
 
 /* ─── Toast ─── */
@@ -611,30 +599,30 @@ const showToast = (title, msg, type = 'success') => {
     const toast = document.getElementById('toast');
     const toastIconContainer = toast.querySelector('.rounded-full');
     const toastIcon = toast.querySelector('i');
-    
+
     document.getElementById('toast-title').textContent = title;
     document.getElementById('toast-msg').textContent = msg;
-    
+
     if (type === 'error') {
         // Ganti styling toast ke tema error (merah)
         toast.classList.remove('border-green-200', 'dark:border-green-800');
         toast.classList.add('border-red-200', 'dark:border-red-800');
-        
+
         toastIconContainer.classList.remove('bg-green-100', 'dark:bg-green-900/40');
         toastIconContainer.classList.add('bg-red-100', 'dark:bg-red-900/40');
-        
+
         toastIcon.className = 'fas fa-xmark text-red-500 text-sm';
     } else {
         // Kembalikan ke tema sukses (hijau)
         toast.classList.remove('border-red-200', 'dark:border-red-800');
         toast.classList.add('border-green-200', 'dark:border-green-800');
-        
+
         toastIconContainer.classList.remove('bg-red-100', 'dark:bg-red-900/40');
         toastIconContainer.classList.add('bg-green-100', 'dark:bg-green-900/40');
-        
+
         toastIcon.className = 'fas fa-check text-green-500 text-sm';
     }
-    
+
     toast.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(hideToast, 4500);
@@ -643,60 +631,6 @@ function hideToast() {
     document.getElementById('toast').classList.remove('show');
 }
 
-/* ─── Particles ─── */
-const canvas = document.getElementById('particles-canvas');
-const ctx = canvas.getContext('2d');
-let particles = [];
-
-const resize = () => {
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-};
-window.addEventListener('resize', resize, { passive: true });
-resize();
-
-const createParticles = () => {
-    particles = Array.from({ length: 60 }, () => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 0.4,
-        vy: (Math.random() - 0.5) * 0.4,
-        r: Math.random() * 2 + 0.5,
-        alpha: Math.random() * 0.5 + 0.1,
-    }));
-};
-createParticles();
-
-const drawParticles = () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach(p => {
-        p.x += p.vx; p.y += p.vy;
-        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,255,255,${p.alpha})`;
-        ctx.fill();
-    });
-    // Draw lines between close particles
-    for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-            const dx = particles[i].x - particles[j].x;
-            const dy = particles[i].y - particles[j].y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < 100) {
-                ctx.beginPath();
-                ctx.moveTo(particles[i].x, particles[i].y);
-                ctx.lineTo(particles[j].x, particles[j].y);
-                ctx.strokeStyle = `rgba(255,255,255,${0.1 * (1 - dist / 100)})`;
-                ctx.lineWidth = 0.5;
-                ctx.stroke();
-            }
-        }
-    }
-    requestAnimationFrame(drawParticles);
-};
-drawParticles();
 
 /* ─── VS Code Typing & Compiler Animation ─── */
 const editorFilesData = {
@@ -745,14 +679,14 @@ const getFileIconClass = (file) => {
 
 const switchTab = (fileKey) => {
     if (currentFile === fileKey && isTyping) return;
-    
+
     // Clear existing animations
     clearTimeout(typingTimer);
     clearTimeout(autoCycleTimer);
     isTyping = false;
-    
+
     currentFile = fileKey;
-    
+
     // Update tabs UI
     tabs.forEach(tab => {
         const isCurrent = tab.dataset.file === fileKey;
@@ -762,7 +696,7 @@ const switchTab = (fileKey) => {
         tab.classList.toggle('text-gray-500', !isCurrent);
         tab.classList.toggle('bg-transparent', !isCurrent);
     });
-    
+
     // Update title
     if (fileTitle) {
         fileTitle.textContent = fileKey;
@@ -771,12 +705,12 @@ const switchTab = (fileKey) => {
             fileIcon.className = getFileIconClass(fileKey);
         }
     }
-    
+
     // Update sidebar icon
     if (sidebarFileIcon) {
         sidebarFileIcon.className = getFileIconClass(fileKey);
     }
-    
+
     startTypingAnimation(fileKey);
 };
 
@@ -784,40 +718,40 @@ const startTypingAnimation = (fileKey) => {
     if (!codeArea) return;
     isTyping = true;
     codeArea.innerHTML = '';
-    
+
     const lines = editorFilesData[fileKey];
     let lineIndex = 0;
     let tokenIndex = 0;
     let charIndex = 0;
-    
+
     // Create cursor element
     const cursor = document.createElement('span');
     cursor.className = 'typing-cursor';
-    
+
     const appendNewLine = (index) => {
         const lineDiv = document.createElement('div');
         lineDiv.className = 'flex gap-4';
-        
+
         const lineNum = document.createElement('span');
         lineNum.className = 'text-gray-600 select-none w-3 text-right';
         lineNum.textContent = index + 1;
-        
+
         const lineContent = document.createElement('span');
         lineContent.className = 'line-content';
-        
+
         lineDiv.appendChild(lineNum);
         lineDiv.appendChild(lineContent);
         codeArea.appendChild(lineDiv);
-        
+
         codeArea.scrollTop = codeArea.scrollHeight;
         return lineContent;
     };
-    
+
     let currentLineContent = appendNewLine(0);
-    
+
     const typeChar = () => {
         if (!isTyping) return;
-        
+
         if (lineIndex >= lines.length) {
             // Finished typing all lines
             isTyping = false;
@@ -827,10 +761,10 @@ const startTypingAnimation = (fileKey) => {
             runTerminalSimulation(fileKey);
             return;
         }
-        
+
         const currentLine = lines[lineIndex];
         const tokens = currentLine.tokens;
-        
+
         if (tokenIndex >= tokens.length) {
             // Move to next line
             lineIndex++;
@@ -844,11 +778,11 @@ const startTypingAnimation = (fileKey) => {
             }
             return;
         }
-        
+
         const currentToken = tokens[tokenIndex];
         const tokenText = currentToken[0];
         const tokenClass = currentToken[1];
-        
+
         // Find or create span for the token
         let tokenSpan = currentLineContent.querySelector(`.t-${tokenIndex}`);
         if (!tokenSpan) {
@@ -856,32 +790,32 @@ const startTypingAnimation = (fileKey) => {
             tokenSpan.className = `t-${tokenIndex} ${tokenClass}`;
             currentLineContent.appendChild(tokenSpan);
         }
-        
+
         // Append one character
         tokenSpan.textContent += tokenText[charIndex];
-        
+
         // Move cursor next to tokenSpan
         currentLineContent.appendChild(cursor);
-        
+
         charIndex++;
-        
+
         if (charIndex >= tokenText.length) {
             tokenIndex++;
             charIndex = 0;
         }
-        
+
         // Random typing speed variation
         const speed = Math.random() * 30 + 15;
         typingTimer = setTimeout(typeChar, speed);
     };
-    
+
     typingTimer = setTimeout(typeChar, 100);
 };
 
 const runTerminalSimulation = (fileKey) => {
     if (!terminalArea) return;
     terminalArea.innerHTML = '';
-    
+
     let logs = [];
     if (fileKey === 'coreit.js') {
         logs = [
@@ -906,7 +840,7 @@ const runTerminalSimulation = (fileKey) => {
             { text: '✔ Browser connected successfully!', type: 'success', delay: 300 }
         ];
     }
-    
+
     let logIndex = 0;
     const printLog = () => {
         if (!terminalArea) return;
@@ -919,10 +853,10 @@ const runTerminalSimulation = (fileKey) => {
             }, 5000); // Wait 5s before switching
             return;
         }
-        
+
         const log = logs[logIndex];
         const line = document.createElement('div');
-        
+
         if (log.type === 'command') {
             line.className = 'flex gap-1.5';
             line.innerHTML = `<span class="text-green-500">➜</span><span class="text-blue-400">~/core-it</span><span class="text-gray-300">${log.text.substring(12)}</span>`;
@@ -933,14 +867,14 @@ const runTerminalSimulation = (fileKey) => {
             line.className = 'text-gray-500';
             line.textContent = log.text;
         }
-        
+
         terminalArea.appendChild(line);
         logIndex++;
-        
+
         const nextDelay = logs[logIndex] ? (logs[logIndex].delay || 200) : 200;
         autoCycleTimer = setTimeout(printLog, nextDelay);
     };
-    
+
     printLog();
 };
 
@@ -959,37 +893,37 @@ if (runBtn) {
             clearTimeout(typingTimer);
             isTyping = false;
             codeArea.innerHTML = '';
-            
+
             const lines = editorFilesData[currentFile];
             lines.forEach((line, idx) => {
                 const lineDiv = document.createElement('div');
                 lineDiv.className = 'flex gap-4';
-                
+
                 const lineNum = document.createElement('span');
                 lineNum.className = 'text-gray-600 select-none w-3 text-right';
                 lineNum.textContent = idx + 1;
-                
+
                 const lineContent = document.createElement('span');
                 lineContent.className = 'line-content';
-                
+
                 line.tokens.forEach(tok => {
                     const span = document.createElement('span');
                     span.className = tok[1];
                     span.textContent = tok[0];
                     lineContent.appendChild(span);
                 });
-                
+
                 lineDiv.appendChild(lineNum);
                 lineDiv.appendChild(lineContent);
                 codeArea.appendChild(lineDiv);
             });
             codeArea.scrollTop = codeArea.scrollHeight;
         }
-        
+
         // Execute compilation simulation immediately
         clearTimeout(autoCycleTimer);
         runTerminalSimulation(currentFile);
-        
+
         // Flash Run button feedback
         runBtn.classList.add('text-yellow-400');
         setTimeout(() => runBtn.classList.remove('text-yellow-400'), 500);
@@ -1013,16 +947,16 @@ if (badgeCyber) {
         clearTimeout(typingTimer);
         clearTimeout(autoCycleTimer);
         isTyping = false;
-        
+
         if (!terminalArea) return;
-        
+
         // Switch terminal to Retro green scan
         terminalArea.innerHTML = '';
         const commandLine = document.createElement('div');
         commandLine.className = 'flex gap-1.5';
         commandLine.innerHTML = `<span class="text-green-500">➜</span><span class="text-blue-400">~/core-it</span><span class="text-gray-300">nmap -sS -O 192.168.1.100</span>`;
         terminalArea.appendChild(commandLine);
-        
+
         const cyberLogs = [
             'Starting Nmap 7.92 ( https://nmap.org ) at 2026-06-16 14:38',
             'Nmap scan report for coreit-secure.local (192.168.1.100)',
@@ -1033,7 +967,7 @@ if (badgeCyber) {
             '22/tcp   closed ssh',
             '✔ Security check passed! No open vulnerabilities found.'
         ];
-        
+
         let cIdx = 0;
         const printCyberLog = () => {
             if (cIdx >= cyberLogs.length) return;
@@ -1057,7 +991,7 @@ if (badgeCyber) {
 if (badgeUiux) {
     badgeUiux.addEventListener('click', () => {
         switchTab('style.css');
-        
+
         // Neon Glow Shift effect on the editor window
         if (editorWindow) {
             editorWindow.classList.add('neon-glow-active');
